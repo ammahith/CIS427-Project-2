@@ -103,7 +103,7 @@ def handle_login(client_socket, user_name, password):
         c.execute("SELECT ID FROM Users WHERE user_name = ? AND password = ?", (user_name, password)) # check against the database if the user exists in teh Users table
         user_id = c.fetchone()
         if user_id:
-            print(f"{user_name} logged in.\n")
+            print(f"USER{user_id[0]} - {user_name} logged in.\n")
             response = f"Successfully logged in as {user_name}\n."
         else:
             print(f"Invalid login attempt for {user_name}.\n")
@@ -201,9 +201,10 @@ def handle_buy_command(conn, user_id, command_text):
         update_or_insert_stock(conn, user_id, stock_symbol, stock_price, req_stock_quantity)
         conn.commit()
         response = f"Successfully bought {req_stock_quantity} shares of {stock_symbol} for ${total_price}.\nWallet: ${new_balance}"
-        print(f"User: {user_id}: {response}.\n")
+        print(f"user_id {user_id}: {response}.\n")
         return response
 
+# update or insert stock. If the stock exists, we update its quantity, otherwise, we insert a new record to the db.
 def update_or_insert_stock(conn, user_id, stock_symbol, stock_price, req_stock_quantity):
     c = conn.cursor()
     # Ensure to pass stock_symbol as a single-element tuple
@@ -225,6 +226,7 @@ def update_or_insert_stock(conn, user_id, stock_symbol, stock_price, req_stock_q
 
     conn.commit() 
 
+# if the user has the stock and enough of it, we update the user's balance and stock quantity. In each case, we send a response to the client
 def handle_sell_command(conn, user_id, command_text):
     c = conn.cursor()
     stock_symbol, req_stock_quantity = command_text[1], int(command_text[2])
@@ -265,17 +267,17 @@ def handle_sell_command(conn, user_id, command_text):
     response = f"Successfully sold {req_stock_quantity} shares of {stock_symbol} for ${total_price}.\nWallet: ${new_balance}"
     print(f"user_id: {user_id}:" + response + "\n")
     return response
-
+# handle shutdown. If the user is root, we shut down the server, otherwise, we send a response to the client
 def handle_shutdown(conn, user_id):
     user_name = validate_user(conn, user_id)
     if user_name:
-        print(user_name)
         if user_name == "root":
+            print("\n\nSHUTTING DOWN SERVER!\n\n")
             return "QUIT"
         else:
             return "403 Not a root user"
 
-
+# Return the list of stocks in the stock market, if the user is root, otherwise, return the list of stocks for the user
 def handle_list(conn, user_id):
     user_name = validate_user(conn,user_id)
     response = ""
@@ -302,7 +304,7 @@ def handle_list(conn, user_id):
     result = f""+response
     return result
 
-
+# Return the user's balance, edge case if the user is not found
 def handle_balance(conn, user_id):
     c = conn.cursor()
     c.execute("SELECT usd_balance FROM Users WHERE ID = ?", (user_id,))
@@ -312,6 +314,7 @@ def handle_balance(conn, user_id):
     else:
         return "User not found"
 
+# Deposit money to the user's account (As per requirements, not a good practice), edge case if the user is not found (shouldn't happen)
 def handle_deposit(conn, user_id, command_text):
     amount = float(command_text[1])
     c = conn.cursor()
@@ -324,6 +327,7 @@ def handle_deposit(conn, user_id, command_text):
     else:
         return "User not found"
 
+# Lookup a stock, format: LOOKUP <stockname>, if the stock is found, we return the stock quantity, otherwise, we return a response to the client
 def handle_lookup(conn, user_id, command_text):
     stock_symbol = command_text[1]
     c = conn.cursor()
@@ -334,6 +338,7 @@ def handle_lookup(conn, user_id, command_text):
     else:
         return "404 Your search did not match any records."
 
+# internal function to validate the user_id and return the user_name
 def validate_user(conn, user_id):
     c = conn.cursor()
     c.execute("SELECT user_name FROM Users WHERE ID = ?", (user_id,))
@@ -343,6 +348,7 @@ def validate_user(conn, user_id):
     else:
         return "None"
 
+# accecible only to root user_id return the list of active users that are logged in
 def handle_who(conn, user_id):
     c = conn.cursor()
     c.execute("SELECT user_name FROM Users WHERE ID = ?", (user_id,))
@@ -358,6 +364,7 @@ def handle_who(conn, user_id):
     else:
         return "403 Wrong UserID or Password"
 
+# Accept incoming connections
 while not shut_down:
     client_socket, client_address = server_socket.accept()
     print(f"\nConnection from {client_address} has been established\n")

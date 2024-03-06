@@ -32,10 +32,10 @@ def print_menu():
     print("BALANCE - Check your balance")
     print("DEPOSIT <amount> - Add balance")
     print("WHO - Actively Logged in users")
-    print("LOOKUP - Lookup the stock")
+    print("LOOKUP <stockname> - Lookup A stock")
     print("LOGOUT - Logout the session")
     print("QUIT - Exit the program")
-    print("SHUTDOWN - server shutdown and all clients(only root)")
+    print("SHUTDOWN - Disconnect all clients and shutdown server(root user only)")
 
 def main():
     s = socket.socket()
