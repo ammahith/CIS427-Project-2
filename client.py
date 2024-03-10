@@ -8,7 +8,6 @@ Run: python client.py 127.0.0.1 38000
  """
 import socket
 import sys
-import time
 
 # Check for command line arguments to get the server IP and port
 # Command to run the code and connect with the server: python client.py 127.0.0.1 38000

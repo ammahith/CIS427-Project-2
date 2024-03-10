@@ -91,7 +91,7 @@ def handle_client(client_socket, client_address):
                     response = "Error: You are not logged in."
                     client_socket.send(response.encode('utf-8'))
         except IndexError as e:
-            print(f"Error processing command: {e}")
+            # print(f"Error processing command: {e}")
             break  # Break the loop if there's an error
         except Exception as e:
             print(f"Unexpected error: {e}")
